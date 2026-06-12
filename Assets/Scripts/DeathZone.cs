@@ -10,6 +10,12 @@ public sealed class DeathZone : MonoBehaviour
             return;
         }
 
+        if (JumpMapGameManager.Instance != null)
+        {
+            JumpMapGameManager.Instance.GameOver("You Fell!");
+            return;
+        }
+
         respawn.Respawn();
     }
 }

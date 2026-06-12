@@ -23,6 +23,12 @@ public sealed class FallRespawn : MonoBehaviour
             return;
         }
 
+        if (JumpMapGameManager.Instance != null)
+        {
+            JumpMapGameManager.Instance.GameOver("You Fell!");
+            return;
+        }
+
         Respawn();
     }
 

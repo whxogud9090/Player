@@ -6,10 +6,16 @@ public sealed class CoinPickup : MonoBehaviour
 
     [SerializeField] private AudioClip pickupSound;
     [SerializeField] private float destroyDelay = 0.02f;
+    [SerializeField] private bool isGoalCoin;
 
     private bool collected;
 
     public static int CollectedCount => collectedCount;
+
+    public static void ResetCollectedCount()
+    {
+        collectedCount = 0;
+    }
 
     private void OnTriggerEnter(Collider other)
     {
@@ -20,6 +26,14 @@ public sealed class CoinPickup : MonoBehaviour
 
         collected = true;
         collectedCount++;
+        if (JumpMapGameManager.Instance != null)
+        {
+            JumpMapGameManager.Instance.AddCoinScore();
+            if (isGoalCoin)
+            {
+                JumpMapGameManager.Instance.ClearGoal();
+            }
+        }
 
         if (pickupSound != null)
         {

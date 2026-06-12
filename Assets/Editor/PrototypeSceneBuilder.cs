@@ -13,43 +13,64 @@ public static class PrototypeSceneBuilder
     [MenuItem("Tools/Programming Assignment/Build 3D Jump Map")]
     public static void BuildScene()
     {
-        Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
-
-        foreach (GameObject root in scene.GetRootGameObjects())
-        {
-            Object.DestroyImmediate(root);
-        }
+        Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
         Material ground = MakeMaterial("MAT_Ground", new Color(0.42f, 0.52f, 0.42f));
         Material platform = MakeMaterial("MAT_Platform", new Color(0.28f, 0.32f, 0.38f));
         Material accent = MakeMaterial("MAT_Accent", new Color(0.86f, 0.64f, 0.24f));
         Material player = MakeMaterial("MAT_Player", new Color(0.18f, 0.48f, 0.88f));
         Material hazard = MakeMaterial("MAT_Hazard", new Color(0.72f, 0.18f, 0.16f));
+        Material goal = MakeMaterial("MAT_Goal", new Color(0.22f, 0.72f, 0.38f));
 
+        CreateGameManager();
         CreateLight();
         Camera camera = CreateCamera();
         GameObject playerObject = CreatePlayer(player);
         camera.GetComponent<SmoothFollowCamera>().SetTarget(playerObject.transform);
 
         CreatePlatform("Start Platform", new Vector3(0f, -0.25f, 0f), new Vector3(8f, 0.5f, 8f), ground);
-        CreatePlatform("Step 1", new Vector3(0f, 0.4f, 7f), new Vector3(4f, 0.45f, 3f), platform);
-        CreatePlatform("Step 2", new Vector3(3.5f, 1.15f, 12f), new Vector3(3.2f, 0.45f, 3f), platform);
-        CreatePlatform("Step 3", new Vector3(-2.4f, 2.05f, 16.5f), new Vector3(3.2f, 0.45f, 3f), platform);
-        CreatePlatform("Long Landing", new Vector3(0.4f, 2.9f, 22f), new Vector3(6.5f, 0.45f, 3.5f), ground);
-        CreatePlatform("Final Platform", new Vector3(0.4f, 4.05f, 29f), new Vector3(5f, 0.45f, 5f), accent);
 
-        CreatePlatform("Low Wall Left", new Vector3(-4.25f, 0.35f, 0f), new Vector3(0.35f, 1.2f, 8f), platform);
-        CreatePlatform("Low Wall Right", new Vector3(4.25f, 0.35f, 0f), new Vector3(0.35f, 1.2f, 8f), platform);
-        CreateDeathZone("Death Zone", new Vector3(0f, -0.55f, 14f), new Vector3(12f, 0.15f, 30f), hazard);
+        // Section 1: readable warm-up jumps.
+        CreatePlatform("Warmup 1", new Vector3(0f, 0.25f, 6.5f), new Vector3(4.8f, 0.45f, 3.6f), platform);
+        CreatePlatform("Warmup 2", new Vector3(2.4f, 0.65f, 11.8f), new Vector3(4f, 0.45f, 3.4f), platform);
+        CreatePlatform("Warmup 3", new Vector3(-2.2f, 1.05f, 17.1f), new Vector3(4f, 0.45f, 3.4f), platform);
+        CreatePlatform("Checkpoint Island", new Vector3(0f, 1.45f, 22.6f), new Vector3(7f, 0.45f, 5f), ground);
 
-        CreateCoin("Coin 1", new Vector3(0f, 1.5f, 7f), accent);
-        CreateCoin("Coin 2", new Vector3(3.5f, 2.25f, 12f), accent);
-        CreateCoin("Coin 3", new Vector3(-2.4f, 3.15f, 16.5f), accent);
-        CreateCoin("Goal Coin", new Vector3(0.4f, 5.15f, 29f), accent, 1.6f);
+        // Section 2: a wide platform with an obstacle, then short stepping stones.
+        CreatePlatform("Obstacle Island", new Vector3(0f, 1.85f, 30f), new Vector3(7f, 0.45f, 6f), ground);
+        CreatePlatform("Stone Step 1", new Vector3(2.5f, 2.25f, 36f), new Vector3(3.2f, 0.45f, 3f), platform);
+        CreatePlatform("Stone Step 2", new Vector3(-2f, 2.65f, 41f), new Vector3(3.2f, 0.45f, 3f), platform);
+        CreatePlatform("Stone Step 3", new Vector3(1.6f, 3.05f, 46f), new Vector3(3.4f, 0.45f, 3f), platform);
+        CreatePlatform("Rest Island", new Vector3(0f, 3.45f, 52f), new Vector3(7f, 0.45f, 5f), ground);
+
+        // Section 3: moving platform and final bridge. Gaps stay small enough to sprint-jump.
+        CreateMovingPlatform("Moving Platform", new Vector3(0f, 4.05f, 59f), new Vector3(4.2f, 0.42f, 3.4f), new Vector3(4f, 0f, 0f), platform);
+        CreatePlatform("Landing Island", new Vector3(1.8f, 4.65f, 66f), new Vector3(6.4f, 0.45f, 5f), ground);
+        CreatePlatform("Final Bridge", new Vector3(1.8f, 5.05f, 74f), new Vector3(2.1f, 0.35f, 10f), platform);
+        CreatePlatform("Final Platform", new Vector3(1.8f, 5.55f, 84f), new Vector3(7f, 0.45f, 7f), goal);
+
+        CreatePlatform("Start Guard Left", new Vector3(-4.25f, 0.35f, 0f), new Vector3(0.35f, 1.2f, 8f), platform);
+        CreatePlatform("Start Guard Right", new Vector3(4.25f, 0.35f, 0f), new Vector3(0.35f, 1.2f, 8f), platform);
+        CreateDeathZone("Death Zone", new Vector3(0f, -0.8f, 42f), new Vector3(24f, 0.15f, 100f), hazard);
+        CreateRotatingHazard("Island Spinner", new Vector3(0f, 2.3f, 30f), new Vector3(4.2f, 0.12f, 0.22f), hazard, 70f);
+        CreateRotatingHazard("Bridge Spinner", new Vector3(1.8f, 5.45f, 74f), new Vector3(3.3f, 0.12f, 0.22f), hazard, -65f);
+        CreateGoalZone("Goal Zone", new Vector3(1.8f, 5.82f, 84f), new Vector3(4.4f, 0.18f, 4.4f), goal);
+
+        CreateCoin("Coin 1", new Vector3(0f, 1.25f, 6.5f), accent);
+        CreateCoin("Coin 2", new Vector3(2.4f, 1.65f, 11.8f), accent);
+        CreateCoin("Coin 3", new Vector3(-2.2f, 2.05f, 17.1f), accent);
+        CreateCoin("Checkpoint Coin", new Vector3(0f, 2.45f, 22.6f), accent);
+        CreateCoin("Step Coin 1", new Vector3(2.5f, 3.25f, 36f), accent);
+        CreateCoin("Step Coin 2", new Vector3(-2f, 3.65f, 41f), accent);
+        CreateCoin("Step Coin 3", new Vector3(1.6f, 4.05f, 46f), accent);
+        CreateCoin("Rest Coin", new Vector3(0f, 4.45f, 52f), accent);
+        CreateCoin("Moving Coin", new Vector3(0f, 5.05f, 59f), accent);
+        CreateCoin("Landing Coin", new Vector3(1.8f, 5.65f, 66f), accent);
+        CreateCoin("Goal Coin", new Vector3(1.8f, 6.95f, 80.5f), accent, 1.6f);
 
         RenderSettings.ambientIntensity = 1.1f;
         EditorSceneManager.MarkSceneDirty(scene);
-        EditorSceneManager.SaveScene(scene);
+        EditorSceneManager.SaveScene(scene, ScenePath);
         AssetDatabase.SaveAssets();
     }
 
@@ -81,6 +102,12 @@ public static class PrototypeSceneBuilder
         light.type = LightType.Directional;
         light.intensity = 2.2f;
         lightObject.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
+    }
+
+    private static void CreateGameManager()
+    {
+        GameObject managerObject = new GameObject("Jump Map Game Manager");
+        managerObject.AddComponent<JumpMapGameManager>();
     }
 
     private static Camera CreateCamera()
@@ -199,7 +226,58 @@ public static class PrototypeSceneBuilder
         deathZone.AddComponent<DeathZone>();
     }
 
-    private static void CreateCoin(string name, Vector3 position, Material material, float scale = 1f)
+    private static void CreateMovingPlatform(string name, Vector3 position, Vector3 scale, Vector3 moveOffset, Material material)
+    {
+        GameObject platformObject = CreatePlatformObject(name, position, scale, material);
+        MovingPlatform movingPlatform = platformObject.AddComponent<MovingPlatform>();
+        SerializedObject serializedPlatform = new SerializedObject(movingPlatform);
+        serializedPlatform.FindProperty("localMoveOffset").vector3Value = moveOffset;
+        serializedPlatform.FindProperty("moveSpeed").floatValue = 1.35f;
+        serializedPlatform.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    private static void CreateRotatingHazard(string name, Vector3 position, Vector3 scale, Material material, float speed = 100f)
+    {
+        GameObject hazardObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        hazardObject.name = name;
+        hazardObject.transform.position = position;
+        hazardObject.transform.localScale = scale;
+        hazardObject.GetComponent<MeshRenderer>().sharedMaterial = material;
+
+        Collider collider = hazardObject.GetComponent<Collider>();
+        collider.isTrigger = true;
+
+        RotatingHazard rotatingHazard = hazardObject.AddComponent<RotatingHazard>();
+        SerializedObject serializedHazard = new SerializedObject(rotatingHazard);
+        serializedHazard.FindProperty("rotationSpeed").floatValue = speed;
+        serializedHazard.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    private static void CreateGoalZone(string name, Vector3 position, Vector3 scale, Material material)
+    {
+        GameObject pad = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        pad.name = "Goal Pad";
+        pad.transform.position = position;
+        pad.transform.localScale = scale;
+        pad.GetComponent<MeshRenderer>().sharedMaterial = material;
+        Object.DestroyImmediate(pad.GetComponent<Collider>());
+
+        GameObject goalObject = new GameObject(name);
+        goalObject.transform.position = position + Vector3.up * 0.9f;
+        BoxCollider collider = goalObject.AddComponent<BoxCollider>();
+        collider.isTrigger = true;
+        collider.size = new Vector3(scale.x, 1.8f, scale.z);
+        goalObject.AddComponent<GoalZone>();
+
+        GameObject marker = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        marker.name = "Goal Marker";
+        marker.transform.position = position + Vector3.up * 0.18f;
+        marker.transform.localScale = new Vector3(1.2f, 0.08f, 1.2f);
+        marker.GetComponent<MeshRenderer>().sharedMaterial = material;
+        Object.DestroyImmediate(marker.GetComponent<Collider>());
+    }
+
+    private static void CreateCoin(string name, Vector3 position, Material material, float scale = 1f, bool isGoalCoin = false)
     {
         GameObject coin = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         coin.name = name;
@@ -210,6 +288,22 @@ public static class PrototypeSceneBuilder
         collider.isTrigger = true;
         coin.GetComponent<MeshRenderer>().sharedMaterial = material;
         coin.AddComponent<RotatingCoin>();
-        coin.AddComponent<CoinPickup>();
+        CoinPickup pickup = coin.AddComponent<CoinPickup>();
+        if (isGoalCoin)
+        {
+            SerializedObject serializedPickup = new SerializedObject(pickup);
+            serializedPickup.FindProperty("isGoalCoin").boolValue = true;
+            serializedPickup.ApplyModifiedPropertiesWithoutUndo();
+        }
+    }
+
+    private static GameObject CreatePlatformObject(string name, Vector3 position, Vector3 scale, Material material)
+    {
+        GameObject platformObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        platformObject.name = name;
+        platformObject.transform.position = position;
+        platformObject.transform.localScale = scale;
+        platformObject.GetComponent<MeshRenderer>().sharedMaterial = material;
+        return platformObject;
     }
 }
